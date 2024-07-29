@@ -37,14 +37,17 @@ def create_temp_credentials_file():
 
 # Inicializar Vertex AI con la variable de entorno adecuada
 def init_vertex_ai():
+    # Crear el archivo temporal con las credenciales
     credentials_path = create_temp_credentials_file()
+
+    # Establecer la variable de entorno
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 
-    # Inicializar Vertex AI sin parámetros adicionales
+    # Inicializar Vertex AI
     vertexai.init(project="miniibex-project", location="us-central1")
 
-    # Elimina el archivo temporal después de usarlo
-    os.remove(credentials_path)
+    # Devolver la ruta del archivo temporal para eliminarlo después de usarlo
+    return credentials_path
 
 # Texto del sistema de instrucción
 textsi_1 = "El texto del sistema de instrucción va aquí."
@@ -78,20 +81,22 @@ def multiturn_generate_content(text, container):
 def main():
     st.title("Extractor de palabras relevantes e información importante")
 
-    # Inicializar Vertex AI
-    init_vertex_ai()
+    # Inicializar Vertex AI y obtener la ruta del archivo temporal
+    credentials_path = init_vertex_ai()
 
     # Área de texto para que el usuario ingrese el texto
-    user_input = st.text_area(
-        "Ingresa el texto aquí", height=300)
+    user_input = st.text_area("Ingresa el texto aquí", height=300)
 
     if st.button("Generar Respuesta"):
         if user_input:
             st.session_state.summary_container = st.empty()
-            summary = multiturn_generate_content(
-                user_input, st.session_state.summary_container)
+            summary = multiturn_generate_content(user_input, st.session_state.summary_container)
         else:
             st.error("Por favor ingresa algún texto antes de generar la respuesta.")
+    
+    # Eliminar el archivo temporal después de usarlo
+    if credentials_path and os.path.exists(credentials_path):
+        os.remove(credentials_path)
 
 if __name__ == "__main__":
     main()
