@@ -5,6 +5,7 @@ import vertexai.preview.generative_models as generative_models
 import json
 import tempfile
 import os
+from text import instruction
 
 # Crear archivo JSON temporal con las credenciales de Streamlit
 def create_temp_credentials_file():
@@ -50,7 +51,7 @@ def init_vertex_ai():
     return credentials_path
 
 # Texto del sistema de instrucción
-textsi_1 = "El texto del sistema de instrucción va aquí."
+textsi_1 = instruction
 
 # Configuraciones de generación y seguridad
 generation_config = {
