@@ -2,13 +2,57 @@ import streamlit as st
 import vertexai
 from vertexai.generative_models import GenerativeModel
 import vertexai.preview.generative_models as generative_models
-from text import instruction
+import json
+import tempfile
+import os
 
-# Inicialización de Vertex AI con las credenciales de tu proyecto
-vertexai.init(project="miniibex-project", location="us-central1")
+# Crear archivo JSON temporal con las credenciales de Streamlit
+
+
+def create_temp_credentials_file():
+    # Accede a las variables de secretos de Streamlit
+    secrets = st.secrets
+    credentials = {
+        "type": secrets["type"],
+        "project_id": secrets["project_id"],
+        "private_key_id": secrets["private_key_id"],
+        # Asegúrate de manejar correctamente los saltos de línea
+        "private_key": secrets["private_key"].replace('\\n', '\n'),
+        "client_email": secrets["client_email"],
+        "client_id": secrets["client_id"],
+        "auth_uri": secrets["auth_uri"],
+        "token_uri": secrets["token_uri"],
+        "auth_provider_x509_cert_url": secrets["auth_provider_x509_cert_url"],
+        "client_x509_cert_url": secrets["client_x509_cert_url"],
+        # Valor predeterminado si no existe en secretos
+        "universe_domain": secrets.get("universe_domain", "googleapis.com")
+    }
+
+    # Crear archivo temporal
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".json")
+    temp_file_path = temp_file.name
+
+    with open(temp_file_path, 'w') as f:
+        json.dump(credentials, f, indent=4)
+
+    temp_file.close()  # Asegúrate de cerrar el archivo
+
+    return temp_file_path
+
+# Inicializar Vertex AI con el archivo de credenciales temporal
+
+
+def init_vertex_ai():
+    credentials_path = create_temp_credentials_file()
+    vertexai.init(project="miniibex-project",
+                  location="us-central1", credentials=credentials_path)
+
+    # Elimina el archivo temporal después de usarlo
+    os.remove(credentials_path)
+
 
 # Texto del sistema de instrucción
-textsi_1 = instruction
+textsi_1 = "El texto del sistema de instrucción va aquí."
 
 # Configuraciones de generación y seguridad
 generation_config = {
@@ -41,6 +85,9 @@ def multiturn_generate_content(text, container):
 
 def main():
     st.title("Extractor de palabras relevantes e información importante")
+
+    # Inicializar Vertex AI
+    init_vertex_ai()
 
     # Área de texto para que el usuario ingrese el texto
     user_input = st.text_area(
