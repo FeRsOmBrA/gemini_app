@@ -85,13 +85,17 @@ def main():
     # Inicializar Vertex AI y obtener la ruta del archivo temporal
     credentials_path = init_vertex_ai()
 
+    # Mantener el texto ingresado en el estado de sesión
+    if 'user_input' not in st.session_state:
+        st.session_state.user_input = ""
+
     # Área de texto para que el usuario ingrese el texto
-    user_input = st.text_area("Ingresa el texto aquí", height=300)
+    st.session_state.user_input = st.text_area("Ingresa el texto aquí", height=300, value=st.session_state.user_input)
 
     if st.button("Generar Respuesta"):
-        if user_input:
+        if st.session_state.user_input:
             st.session_state.summary_container = st.empty()
-            summary = multiturn_generate_content(user_input, st.session_state.summary_container)
+            summary = multiturn_generate_content(st.session_state.user_input, st.session_state.summary_container)
         else:
             st.error("Por favor ingresa algún texto antes de generar la respuesta.")
     
